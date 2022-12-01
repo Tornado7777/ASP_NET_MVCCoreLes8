@@ -2,7 +2,7 @@
 using Autofac.Configuration;
 using Autofac.Extensions.DependencyInjection;
 using Lesson8.Autofac;
-using Lesson8.Controller;
+using Lesson8.ConsoleController;
 using Lesson8.Models.Reports;
 using Lesson8.Service;
 using Lesson8.Service.Impl;
@@ -25,19 +25,52 @@ namespace Lesson8
 {
     internal class hw8
     {
-        private static IHost? _host;
+        private static WebApplication? _app;
 
-        public static IHost Hosting => _host ??= CreateHostBuilder(Environment.GetCommandLineArgs()).Build();
+        public static WebApplication App 
+        {
+            get 
+            {
+                if (_app == null)
+                {
+                    _app = CreateHostBuilder(Environment.GetCommandLineArgs()).Build();
 
-        private static IServiceProvider Services => Hosting.Services;
+                    if (_app.Environment.IsDevelopment())
+                    {
+                        _app.UseDeveloperExceptionPage();
+                        //_app.UseExceptionHandler("/Error");
+                        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                        _app.UseHsts();
+                    }
+
+                    _app.UseStaticFiles();
+
+                    _app.UseRouting();
+
+                    _app.UseAuthorization();
+
+                    _app.MapControllerRoute(
+                        name: "defualt",
+                        pattern: "{controller=Home}/{action=Index}/{id?}"
+                        );
+
+
+                }
+                return _app;
+            }
+        }
+            //=> _host ??= CreateHostBuilder(Environment.GetCommandLineArgs()).Build();
+
+        private static IServiceProvider Services => App.Services;
         static async Task Main(string[] args)
         {
-            await Hosting.StartAsync();
+            var app = App;
+            await app.StartAsync();
             //await PrintBuyersAsync();
             //await ProductMenu();
-            await OrderMenu();
-            //Console.ReadKey();
-            await Hosting.StopAsync();
+            //await OrderMenu();
+            Console.ReadKey();
+            await app.StopAsync();
         }
 
         private static async Task ProductMenu()
@@ -126,10 +159,12 @@ namespace Lesson8
             reportFileInfo.Execute();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args)
+        public static WebApplicationBuilder CreateHostBuilder(string[] args)
         {
-            return Host
-                 .CreateDefaultBuilder(args)
+            var webApplicationBuilder = WebApplication.CreateBuilder(args);
+
+
+            webApplicationBuilder.Host
                  .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                  .ConfigureContainer<ContainerBuilder>(container => //autofac
                  {
@@ -145,7 +180,7 @@ namespace Lesson8
                  .ConfigureAppConfiguration(options =>
                  options
                      .AddJsonFile("appsetting.json")
-                     
+
                      .AddEnvironmentVariables()
                      .AddCommandLine(args))
                  .ConfigureLogging(options =>
@@ -154,10 +189,22 @@ namespace Lesson8
                      .AddConsole()
                      .AddDebug())
                  .ConfigureServices(ConfigureServices);
+
+            return webApplicationBuilder;
         }
 
         private static void ConfigureServices(HostBuilderContext host, IServiceCollection services)
         {
+
+            services.AddControllersWithViews();
+
+            #region Register Base sServices
+
+            //services.AddTransient<IOrderService, OrderService>();
+
+            #endregion
+
+
             services.AddDbContext<OrdersDbContext>(options =>
             {
                 options
