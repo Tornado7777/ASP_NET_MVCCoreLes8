@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lesson8.Controller
+namespace Lesson8.ConsoleController
 {
     internal class ProductController
     {

@@ -1,11 +1,11 @@
 {
-  "defualtAssembly": "lesson6",
+  "defualtAssembly": "Lesson8",
   "components": [
     {
-      "type": "Lesson6.Services.Impl.OrderService",
+      "type": "Lesson8.Services.Impl.OrderService",
       "services": [
         {
-          "type": "Lesson6.Services.IOrderService"
+          "type": "Lesson8.Services.IOrderService"
         }
       ],
       "injectProperties" :  true
